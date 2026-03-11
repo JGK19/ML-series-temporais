@@ -10,7 +10,7 @@ import pickle
 import scipy.stats as stats
 
 
-with open("df.pkl", "rb") as f:
+with open("df_daily.pkl", "rb") as f:
     df = pickle.load(f)
 
 
@@ -18,7 +18,7 @@ fig, ax = plt.subplots(figsize=(10, 8))
 sns.heatmap(df.corr(numeric_only=True), annot=True, cmap="coolwarm", vmin=-1, vmax=1, ax=ax) 
 ax.set_title("Matriz de Correlação df") 
 
-X = pd.to_datetime(df["Timestamp"], unit="s")
+X = df["datetime"]
 Y = df['Close']
 #derivadas
 # Y_diff = np.diff(df['Close'])
@@ -35,14 +35,14 @@ Y_cum = np.cumsum(df['Close'])
 
 K = [1, 10, 50, 100, 150, 365]
 K2 = [50, 365]
-with open("hip.pkl", "rb") as f:
+with open("hip_daily.pkl", "rb") as f:
     hip = pickle.load(f)
 
 fig, ax = plt.subplots(figsize=(10, 8)) 
 sns.heatmap(hip.corr(numeric_only=True), annot=True, cmap="coolwarm", vmin=-1, vmax=1, ax=ax) 
 ax.set_title("Matriz de Correlação hip") 
 
-with open("alphas.pkl", "rb") as f:
+with open("alphas_daily.pkl", "rb") as f:
     alphas = pickle.load(f)
 
 fig, axes = plt.subplots(len(K2), 1, figsize=(10, 5 * len(K2)))

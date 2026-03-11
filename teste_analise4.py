@@ -10,8 +10,15 @@ import pickle
 import scipy.stats as stats
 
 
-with open("df.pkl", "rb") as f:
-    df = pickle.load(f)
+path = kagglehub.dataset_download("mczielinski/bitcoin-historical-data")
+dataset_path = os.path.join(path, "btcusd_1-min_data.csv")
+
+df = pd.read_csv(dataset_path)
+
+# with open("df.pkl", "wb") as f:
+#     pickle.dump(df, f)
+
+print("SALVO DF")
 
 
 fig, ax = plt.subplots(figsize=(10, 8)) 
@@ -33,19 +40,38 @@ Y_cum = np.cumsum(df['Close'])
 # Y_grad_fft = np.fft.rfft(Y_grad)
 # Y_grad_ifft = np.fft.irfft(Y_grad)
 
+
+dia = 1440
 K = [1, 10, 50, 100, 150, 365]
-K2 = [50, 365]
-with open("hip.pkl", "rb") as f:
-    hip = pickle.load(f)
+dicionario = {"Y_grad": Y_grad, "Y_grad_abs": Y_grad_abs}
+
+for k in K:
+    temp = [((Y_cum[i] - Y_cum[i - k*dia]) if i >= k*dia else Y_cum[i]) for i in range(len(Y_cum))]
+    dicionario[f"Y_cum_{k}"] = temp
+
+hip = pd.DataFrame(dicionario)
+
+# with open("hip.pkl", "wb") as f:
+#     pickle.dump(hip, f)
+
+print("SALVO hip")
 
 fig, ax = plt.subplots(figsize=(10, 8)) 
 sns.heatmap(hip.corr(numeric_only=True), annot=True, cmap="coolwarm", vmin=-1, vmax=1, ax=ax) 
 ax.set_title("Matriz de Correlação hip") 
 
-with open("alphas.pkl", "rb") as f:
-    alphas = pickle.load(f)
+alphas = {}
+K2 = [50, 365]
+for k in K2:
+    alpha = [hip[f"Y_cum_{k}"][i] / hip["Y_grad_abs"][i] if hip["Y_grad_abs"][i] != 0 else np.nan for i in range(len(hip[f"Y_cum_{k}"]))]
+    alphas[f"alpha_{k}"] = alpha
 
-fig, axes = plt.subplots(len(K2), 1, figsize=(10, 5 * len(K2)))
+# with open("alphas.pkl", "wb") as f:
+#     pickle.dump(alphas, f)
+
+print("SALVO alphas")
+
+fig, axes = plt.subplots(len(K), 1, figsize=(10, 5 * len(K)))
 
 for ax, k in zip(axes, K2):
     ax.plot(X, alphas[f"alpha_{k}"], color="tab:blue")
